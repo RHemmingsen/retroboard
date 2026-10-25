@@ -1,0 +1,61 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: claude-pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    # Read-only repo access: the token cannot push commits or merge the PR.
+    # pull-requests: write is only needed to post the review comment.
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Use the job-scoped workflow token (permissions above) instead of the
+          # Claude GitHub App token, so the run has no write access to code.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            You are reviewing this pull request against the project rules in CLAUDE.md
+            at the repository root. The PR branch is already checked out in the current
+            working directory.
+
+            1. Read CLAUDE.md.
+            2. Get the change with `gh pr diff ${{ github.event.pull_request.number }}` and
+               the description with `gh pr view ${{ github.event.pull_request.number }}`.
+            3. Read surrounding files as needed for context.
+            4. Check the diff against every rule in CLAUDE.md (feature-folder layout, one
+               public type per file, Program.cs only wiring, endpoints only via the store
+               interface, async store methods with CancellationToken, 400 ProblemDetails
+               for validation, no unrequested OpenAPI metadata, file-scoped namespaces,
+               TypeScript strictness rules, no new NuGet/npm packages, existing tests not
+               edited to make them pass, diff size of roughly 5 files or fewer).
+               Also flag clear correctness bugs.
+
+            Post exactly one top-level comment with `gh pr comment ${{ github.event.pull_request.number }} --body "..."`
+            containing:
+            - A one-line verdict.
+            - Each violation as `file:line` — the CLAUDE.md rule broken — suggested fix.
+            - "No CLAUDE.md violations found." if there are none.
+
+            Do not modify files, commit, push, approve, or merge. Only post the comment.
+
+          claude_args: |
+            --allowedTools "Read,Glob,Grep,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --disallowedTools "Edit,Write,NotebookEdit,Bash(git push:*),Bash(git commit:*),Bash(gh pr merge:*),Bash(gh pr review:*)"
