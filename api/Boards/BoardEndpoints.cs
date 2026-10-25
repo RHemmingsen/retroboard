@@ -32,6 +32,17 @@ public static class BoardEndpoints
                 return TypedResults.Created($"/api/boards/{board.Id}", board);
             });
 
+        app.MapGet(
+            "/api/boards/{id:guid}",
+            async Task<Results<Ok<Board>, NotFound>> (
+                Guid id,
+                IBoardStore store,
+                CancellationToken cancellationToken) =>
+            {
+                var board = await store.GetAsync(id, cancellationToken);
+                return board is null ? TypedResults.NotFound() : TypedResults.Ok(board);
+            });
+
         return app;
     }
 }

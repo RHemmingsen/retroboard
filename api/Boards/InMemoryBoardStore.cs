@@ -14,4 +14,12 @@ public sealed class InMemoryBoardStore : IBoardStore
         _boards.TryAdd(board.Id, board);
         return Task.FromResult(board);
     }
+
+    public Task<Board?> GetAsync(Guid id, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _boards.TryGetValue(id, out var board);
+        return Task.FromResult(board);
+    }
 }
