@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 API (run from `api/`):
 - `dotnet build`
 - `dotnet run` — serves on http://localhost:5073 (`--launch-profile https` adds https://localhost:7262)
+- Stop `dotnet run` before `dotnet build`, it locks the output
 
 Web (run from `web/`):
 - `npm install`
@@ -13,15 +14,13 @@ Web (run from `web/`):
 - `npm run build` — type-checks with `tsc` (no emit) then builds with Vite; this is the only type-check/lint step
 - `npm run preview`
 
-### API
-- One folder per feature: `api/Boards/` holds `Board.cs`, `IBoardStore.cs`,
-  `InMemoryBoardStore.cs`, `BoardEndpoints.cs`
+## API
+- One folder per feature: `api/Boards/` holds all the files pertaining to that feature. Other features should follow this same pattern.
+- One public type per file
 - `Program.cs` only wires things up (DI (dependency injection) registration, `Map*Endpoints` calls)
 - Endpoints never touch storage directly, only via the store interface
-- One public type per file
 
-### Web
-- Entry is `index.html` → `src/main.ts`, which renders into `#app` via `innerHTML`.
+## Web
 - TypeScript is strict about unused locals/params and uses `verbatimModuleSyntax` (use `import type` for type-only imports) and `erasableSyntaxOnly` (no enums, namespaces, or parameter properties).
 
 ## Conventions
@@ -29,6 +28,7 @@ Web (run from `web/`):
 - Store methods are async and take a `CancellationToken`
 - Validation failures return 400 `ProblemDetails`
 - Don't add OpenAPI metadata unless asked
+- File-scoped namespaces, `RetroBoard.Api.<Feature>`
 
 ## Rules
 - No new NuGet or npm packages without asking first
