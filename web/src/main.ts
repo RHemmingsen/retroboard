@@ -10,6 +10,12 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <input id="board-name" name="name" required maxlength="80" />
     <button type="submit">Create</button>
   </form>
+  <p id="error" role="alert"></p>
+  <section id="result" hidden>
+    <h2>Created board</h2>
+    <p>Name: <span id="result-name"></span></p>
+    <p>Id: <code id="result-id"></code></p>
+  </section>
 </section>
 `
 
@@ -30,14 +36,24 @@ async function createBoard(name: string): Promise<Board> {
 
 const form = document.querySelector<HTMLFormElement>('#create-board')!
 const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!
+const error = document.querySelector<HTMLParagraphElement>('#error')!
+const result = document.querySelector<HTMLElement>('#result')!
+const resultName = document.querySelector<HTMLSpanElement>('#result-name')!
+const resultId = document.querySelector<HTMLElement>('#result-id')!
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault()
   submit.disabled = true
   try {
     const name = new FormData(form).get('name') as string
-    await createBoard(name)
+    const board = await createBoard(name)
+    resultName.textContent = board.name
+    resultId.textContent = board.id
+    result.hidden = false
+    error.textContent = ''
     form.reset()
+  } catch (e) {
+    error.textContent = e instanceof Error ? e.message : String(e)
   } finally {
     submit.disabled = false
   }
