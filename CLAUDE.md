@@ -8,6 +8,11 @@ API (run from `api/`):
 - `dotnet run` — serves on http://localhost:5073 (`--launch-profile https` adds https://localhost:7262)
 - Stop `dotnet run` before `dotnet build`, it locks the output
 
+API tests (run from `api.Tests/`):
+- `dotnet test` — xUnit v3 on Microsoft.Testing.Platform (opted in via root `global.json`); hosts the API in-process with `WebApplicationFactory<Program>`
+- API tests: `cd api.Tests && dotnet test`
+- Never edit existing tests to make them pass. If a test looks wrong, say so and stop.
+
 Web (run from `web/`):
 - `npm install`
 - `npm run dev` — Vite dev server
