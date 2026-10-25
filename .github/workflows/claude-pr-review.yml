@@ -24,7 +24,7 @@ jobs:
 
       - uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Use the job-scoped workflow token (permissions above) instead of the
           # Claude GitHub App token, so the run has no write access to code.
           github_token: ${{ secrets.GITHUB_TOKEN }}
